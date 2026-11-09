@@ -1,12 +1,11 @@
 local Scripts = {
-    [10769787444] = "loadstring(game:HttpGet("https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/Aboverb.lua"))()", --above
-    [987654321] = "https://your-domain/scripts/other-game.lua",
+    [10769787444] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/Aboverb.lua", -- Above
 }
 
 local scriptUrl = Scripts[game.GameId]
 
 if not scriptUrl then
-    warn("Slime Hub does not support this game yet.")
+    warn("Slime Hub does not support this game yet. Game ID: " .. tostring(game.GameId))
     return
 end
 
