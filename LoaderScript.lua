@@ -1,5 +1,5 @@
 local Scripts = {
-    [123456789] = "https://your-domain/scripts/above.lua",
+    [10769787444] = "loadstring(game:HttpGet("https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/Aboverb.lua"))()", --above
     [987654321] = "https://your-domain/scripts/other-game.lua",
 }
 
