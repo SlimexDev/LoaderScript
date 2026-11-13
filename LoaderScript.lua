@@ -2,6 +2,7 @@ local Scripts = {
     [10769787444] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/Aboverb.lua", -- Above
     [10769552054] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/urban%20reload.lua", --urban reload
     [10767494536] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/hikeforeggs", --hikeforeggs
+    [10766972131] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/ThrowFoodForAnimals", --ThrowFoodForAnimals
 }
 
 local scriptUrl = Scripts[game.GameId]
