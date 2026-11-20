@@ -1,5 +1,6 @@
 -- Slime Hub loader: chay script cua game hien tai va dem luot chay tren key server
--- (trang admin > Runs). Phan dem luot chay ngam, loi o do khong lam hong viec load hub.
+-- (trang admin > Runs). Server gui log Discord khi load xong co key hoac load loi.
+-- Phan dem luot chay ngam, loi o do khong lam hong viec load hub.
 
 local Repo = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/"
 local RunApi = "https://slimehub-key.slimehub-keysystem.workers.dev/api/run"
@@ -26,6 +27,29 @@ local function UrlEncode(s)
     return (tostring(s):gsub("[^%w%-_%.~]", function(c)
         return string.format("%%%02X", string.byte(c))
     end))
+end
+
+-- Thong tin gui kem log Discord (server chi nhan nhung truong nay, khong HWID/vi tri/Job ID).
+local function PlayerInfo(extra)
+    local info = {}
+    pcall(function()
+        local player = game:GetService("Players").LocalPlayer
+        info.u = player.UserId
+        info.p = player.Name
+        info.d = player.DisplayName
+    end)
+    pcall(function()
+        if typeof(identifyexecutor) == "function" then
+            local name, version = identifyexecutor()
+            info.x = version and (tostring(name) .. " " .. tostring(version)) or tostring(name)
+        elseif typeof(getexecutorname) == "function" then
+            info.x = tostring(getexecutorname())
+        end
+    end)
+    for k, v in pairs(extra or {}) do
+        info[k] = v
+    end
+    return info
 end
 
 -- Gui 1 su kien dem luot chay; tra ve true neu server da dem.
@@ -90,7 +114,7 @@ task.spawn(function()
         local key = ReadKey(info)
         if key and key ~= tried then
             tried = key
-            if Count("key", { k = key }) then
+            if Count("key", PlayerInfo({ k = key })) then
                 return
             end
         end
@@ -106,7 +130,7 @@ end)
 
 if not success then
     loadFailed = true
-    task.spawn(Count, "fail")
+    task.spawn(Count, "fail", PlayerInfo({ err = tostring(errorMessage):sub(1, 300) }))
     Notify("Failed to load. Try again or report it in Discord.")
     warn("[Slime Hub] Failed to load: " .. tostring(errorMessage))
 end
