@@ -1,12 +1,5 @@
--- Slime Hub loader: chay script cua game hien tai va dem luot chay tren key server
--- (trang admin > Runs). Server gui log Discord khi load xong co key hoac load loi.
--- Phan dem luot chay ngam, loi o do khong lam hong viec load hub.
-
 local Repo = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/"
 local RunApi = "https://slimehub-key.slimehub-keysystem.workers.dev/api/run"
-
--- [GameId] = { Name = ten hien tren dashboard, File = file trong thu muc game/ (da URL-encode),
---              KeyFiles = file key SlimeUI luu (them neu game dung Folder rieng) }
 local Games = {
     [10769787444] = { Name = "Above", File = "Aboverb.lua" },
     [10769552054] = { Name = "Urban Reload", File = "urban%20reload.lua", KeyFiles = { "SlimeHub/UrbanReload/key.txt" } },
@@ -28,8 +21,6 @@ local function UrlEncode(s)
         return string.format("%%%02X", string.byte(c))
     end))
 end
-
--- Thong tin gui kem log Discord (server chi nhan nhung truong nay, khong HWID/vi tri/Job ID).
 local function PlayerInfo(extra)
     local info = {}
     pcall(function()
@@ -51,8 +42,6 @@ local function PlayerInfo(extra)
     end
     return info
 end
-
--- Gui 1 su kien dem luot chay; tra ve true neu server da dem.
 local function Count(event, params)
     local url = RunApi .. "?e=" .. event .. "&g=" .. tostring(game.GameId)
     for name, value in pairs(params or {}) do
@@ -79,8 +68,6 @@ local function ReadKey(info)
     end
     return nil
 end
-
--- Tai script, thu lai 3 lan; bao loi ro rang khi GitHub tra ve trang HTML hoac 404.
 local function Download(url)
     local lastError
     for attempt = 1, 3 do
@@ -104,9 +91,6 @@ end
 task.spawn(Count, "start", { n = info.Name })
 
 local loadFailed = false
-
--- Dem "co key" khi trong file key co key ma server chap nhan. Man hinh key cua SlimeUI
--- ghi file nay khi key dung, nen chi can doi file doi noi dung (key cu het han -> key moi).
 task.spawn(function()
     local tried
     local deadline = os.clock() + KeyWatchSeconds
