@@ -6,6 +6,7 @@ local Games = {
     [10767494536] = { Name = "Hike For Eggs", File = "hikeforeggs" },
     [10766972131] = { Name = "Throw Food For Animals", File = "ThrowFoodForAnimals" },
     [10772281976] = { Name = "Unstable SMP FFA", File = "unstable%20smp%20ffa" },
+    [7174773198] = { Name = "Vox Seas", File = "Voxseas.lua" },
 }
 local DefaultKeyFile = "SlimeHub/key.txt"
 local KeyWatchSeconds = 600
