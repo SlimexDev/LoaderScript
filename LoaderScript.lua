@@ -8,7 +8,7 @@ local Games = {
     [10772281976] = { Name = "Unstable SMP FFA", File = "unstable%20smp%20ffa" },
 }
 local DefaultKeyFile = "SlimeHub/key.txt"
-local KeyWatchSeconds = 600 -- cho nguoi choi lay key toi da 10 phut
+local KeyWatchSeconds = 600
 
 local function Notify(text)
     pcall(function()
