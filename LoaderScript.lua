@@ -1,63 +1,112 @@
-local Scripts = {
-    [10769787444] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/Aboverb.lua", -- Above
-    [10769552054] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/urban%20reload.lua", --urban reload
-    [10767494536] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/hikeforeggs", --hikeforeggs
-    [10766972131] = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/ThrowFoodForAnimals", --ThrowFoodForAnimals
-    [10772281976] = "https://github.com/SlimexDev/LoaderScript/blob/main/game/unstable%20smp%20ffa", --unstable smp ffa
+-- Slime Hub loader: chay script cua game hien tai va dem luot chay tren key server
+-- (trang admin > Runs). Phan dem luot chay ngam, loi o do khong lam hong viec load hub.
+
+local Repo = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/"
+local RunApi = "https://slimehub-key.slimehub-keysystem.workers.dev/api/run"
+
+-- [GameId] = { Name = ten hien tren dashboard, File = file trong thu muc game/ (da URL-encode),
+--              KeyFiles = file key SlimeUI luu (them neu game dung Folder rieng) }
+local Games = {
+    [10769787444] = { Name = "Above", File = "Aboverb.lua" },
+    [10769552054] = { Name = "Urban Reload", File = "urban%20reload.lua", KeyFiles = { "SlimeHub/UrbanReload/key.txt" } },
+    [10767494536] = { Name = "Hike For Eggs", File = "hikeforeggs" },
+    [10766972131] = { Name = "Throw Food For Animals", File = "ThrowFoodForAnimals" },
+    [10772281976] = { Name = "Unstable SMP FFA", File = "unstable%20smp%20ffa" },
 }
+local DefaultKeyFile = "SlimeHub/key.txt"
+local KeyWatchSeconds = 600 -- cho nguoi choi lay key toi da 10 phut
 
--- File key SlimeUI luu theo Folder cua tung game (mac dinh "SlimeHub/key.txt")
-local KeyFiles = {
-    [10769552054] = "SlimeHub/UrbanReload/key.txt",
-}
+local function Notify(text)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Slime Hub", Text = text, Duration = 8 })
+    end)
+end
 
-local WebhookScript = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/webhook.lua"
-local LogTimeout = 300 -- giay: hub chua load xong (dang lay key) thi van gui log tam
+local function UrlEncode(s)
+    return (tostring(s):gsub("[^%w%-_%.~]", function(c)
+        return string.format("%%%02X", string.byte(c))
+    end))
+end
 
-local scriptUrl = Scripts[game.GameId]
+-- Gui 1 su kien dem luot chay; tra ve true neu server da dem.
+local function Count(event, params)
+    local url = RunApi .. "?e=" .. event .. "&g=" .. tostring(game.GameId)
+    for name, value in pairs(params or {}) do
+        url = url .. "&" .. name .. "=" .. UrlEncode(value)
+    end
+    local ok, body = pcall(game.HttpGet, game, url)
+    return ok and type(body) == "string" and body:find('"ok":true', 1, true) ~= nil
+end
 
-if not scriptUrl then
-    warn("Slime Hub does not support this game yet. Game ID: " .. tostring(game.GameId))
+local function ReadKey(info)
+    if typeof(isfile) ~= "function" or typeof(readfile) ~= "function" then
+        return nil
+    end
+    local paths = table.clone(info.KeyFiles or {})
+    table.insert(paths, DefaultKeyFile)
+    for _, path in ipairs(paths) do
+        local ok, saved = pcall(function()
+            return isfile(path) and readfile(path) or nil
+        end)
+        saved = ok and type(saved) == "string" and saved:match("^%s*(.-)%s*$") or nil
+        if saved and saved ~= "" then
+            return saved
+        end
+    end
+    return nil
+end
+
+-- Tai script, thu lai 3 lan; bao loi ro rang khi GitHub tra ve trang HTML hoac 404.
+local function Download(url)
+    local lastError
+    for attempt = 1, 3 do
+        local ok, body = pcall(game.HttpGet, game, url)
+        if ok and type(body) == "string" and body ~= "" and not body:match("^%s*<") and not body:match("^404: Not Found") then
+            return body
+        end
+        lastError = ok and ("bad response: " .. tostring(body):sub(1, 40)) or tostring(body)
+        task.wait(attempt)
+    end
+    error("could not download the script (" .. tostring(lastError) .. ")", 0)
+end
+
+local info = Games[game.GameId]
+if not info then
+    Notify("This game is not supported yet.")
+    warn("[Slime Hub] This game is not supported yet. Game ID: " .. tostring(game.GameId))
     return
 end
 
--- Webhook log: loi o day khong lam hong viec load hub
-local SendLog
-pcall(function()
-    SendLog = loadstring(game:HttpGet(WebhookScript))()
-end)
+task.spawn(Count, "start", { n = info.Name })
 
-local function Log(status, color, err)
-    if type(SendLog) == "function" then
-        task.spawn(pcall, SendLog, {
-            Status = status,
-            Color = color,
-            Error = err,
-            KeyFile = KeyFiles[game.GameId] or "SlimeHub/key.txt",
-        })
-    end
-end
+local loadFailed = false
 
--- Hub chi chay xong sau khi nhap key; qua LogTimeout ma chua xong thi gui log tam,
--- khi load xong van gui them log "Loaded" co key
-local finished = false
-task.delay(LogTimeout, function()
-    if not finished then
-        Log("Executed (not loaded yet)", 0xFAA61A)
+-- Dem "co key" khi trong file key co key ma server chap nhan. Man hinh key cua SlimeUI
+-- ghi file nay khi key dung, nen chi can doi file doi noi dung (key cu het han -> key moi).
+task.spawn(function()
+    local tried
+    local deadline = os.clock() + KeyWatchSeconds
+    while not loadFailed and os.clock() < deadline do
+        local key = ReadKey(info)
+        if key and key ~= tried then
+            tried = key
+            if Count("key", { k = key }) then
+                return
+            end
+        end
+        task.wait(5)
     end
 end)
 
 local success, errorMessage = pcall(function()
-    local source = game:HttpGet(scriptUrl)
-    local runScript, compileError = loadstring(source)
+    local runScript, compileError = loadstring(Download(Repo .. info.File))
     assert(runScript, compileError)
     runScript()
 end)
-finished = true
 
-if success then
-    Log("Loaded", 0x57F287)
-else
-    Log("Load failed", 0xED4245, tostring(errorMessage))
-    warn("Failed to load Slime Hub: " .. tostring(errorMessage))
+if not success then
+    loadFailed = true
+    task.spawn(Count, "fail")
+    Notify("Failed to load. Try again or report it in Discord.")
+    warn("[Slime Hub] Failed to load: " .. tostring(errorMessage))
 end
