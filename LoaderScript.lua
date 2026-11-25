@@ -1,5 +1,3 @@
--- Slime Hub loader. Add a game: python tools/add_game.py (or add one line below).
--- File = script in game/, Xeno = optional Xeno build, KeyFiles = extra key paths.
 local Games = {
     [10769787444] = { Name = "Above", File = "above.lua" },
     [10769552054] = { Name = "Urban Reload", File = "urban-reload.lua", KeyFiles = { "SlimeHub/UrbanReload/key.txt" } },
