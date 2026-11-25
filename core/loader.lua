@@ -1,4 +1,3 @@
--- Slime Hub loader core. LoaderScript.lua chi giu danh sach game va goi file nay: core(Games)
 local Repo = "https://raw.githubusercontent.com/SlimexDev/LoaderScript/refs/heads/main/game/"
 local RunApi = "https://slimehub-key.slimehub-keysystem.workers.dev/api/run"
 local DefaultKeyFile = "SlimeHub/key.txt"
