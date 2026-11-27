@@ -7,6 +7,7 @@ local Games = {
     [7174773198] = { Name = "Vox Seas", File = "vox-seas.lua" },
     [10775182046] = { Name = "Throw a seed", File = "throw-a-seed.lua" },
     [10774784939] = { Name = "Shoot Arrows For Animals", File = "shoot-arrows-for-animals.lua" },
+    [10778033190] = { Name = "Anime Champions X", File = "anime-champions-x.lua" },
 }
 
 local ok, core = pcall(function()
